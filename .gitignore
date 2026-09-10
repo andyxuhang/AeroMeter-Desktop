@@ -7,6 +7,7 @@
 **/build/
 **/dist/
 **/deployment/
+/release/
 *.log
 nuitka-crash-report.xml
 .DS_Store
