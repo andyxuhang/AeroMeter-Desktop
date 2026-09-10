@@ -1,0 +1,5 @@
+bleak>=1.0,<4
+# Keep one tested Qt ABI on Windows and macOS; update only after both packages pass.
+PySide6==6.11.2
+pyqtgraph>=0.13,<1
+pyserial>=3.5,<4

@@ -1,0 +1,15 @@
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+**/.pytest_cache/
+**/.venv/
+**/.cache/
+**/build/
+**/dist/
+**/deployment/
+*.log
+nuitka-crash-report.xml
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

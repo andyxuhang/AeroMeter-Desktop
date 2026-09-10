@@ -1,0 +1,10 @@
+sigma,mean,minimum,expected
+0.01,0,0.30,null
+0.01,0.29,0.30,null
+0.03,0.30,0.30,10
+0.1,0.99,1.00,null
+0.1,1.00,1.00,10
+0,1,1,0
+-1,2,1,null
+NaN,2,1,null
+1,NaN,1,null
