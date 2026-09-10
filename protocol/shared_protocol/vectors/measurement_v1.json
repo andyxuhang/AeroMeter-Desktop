@@ -1,0 +1,25 @@
+{
+  "protocol": 1,
+  "live": {
+    "hex": "01013412785634127b00d2040205",
+    "sequence": 4660,
+    "timestamp_ms": 305419896,
+    "pressure": 1.23,
+    "flow": 12.34,
+    "stability": 2,
+    "session": true,
+    "pressure_overrange": false,
+    "flow_overrange": true
+  },
+  "statistics": {
+    "hex": "0102010002000000640005000900d00714002800",
+    "sequence": 1,
+    "timestamp_ms": 2,
+    "pressure_mean": 1.0,
+    "pressure_sigma": 0.05,
+    "pressure_pp": 0.09,
+    "flow_mean": 20.0,
+    "flow_sigma": 0.2,
+    "flow_pp": 0.4
+  }
+}

@@ -22,3 +22,5 @@ jobs:
         run: python desktop_app/manage.py setup --development
       - name: Run tests
         run: python desktop_app/manage.py test
+      - name: Run protocol tests
+        run: desktop_app\.venv\Scripts\python.exe -m unittest discover -s protocol\shared_protocol\python\tests -q

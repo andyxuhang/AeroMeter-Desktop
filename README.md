@@ -26,6 +26,10 @@ AeroMeter 的公开桌面客户端。当前提供 Windows 版源码与预编译�
 
 本仓库不包含设备固件、校准与生产算法、OTA/签名、设备序列号和量产工具，也不包含移动端应用。详见 [OPEN_SOURCE_SCOPE.md](OPEN_SOURCE_SCOPE.md)。
 
+## 二次开发
+
+第三方程序可通过公开的 BLE 或 USB 测量接口读取 AeroMeter 数据。服务 UUID、二进制数据包、USB 行协议、控制指令、示例和兼容性规则见 [AeroMeter Protocol 1 客户端接入指南](protocol/AEROMETER_PROTOCOL_1.md)。固件升级、校准、签名、生产和维护接口不属于公开协议。
+
 ## 从源码运行
 
 需要 Python 3.11 或更新版本。在仓库根目录执行：
@@ -49,6 +53,8 @@ python desktop_app/manage.py build
 AeroMeter Desktop is the public desktop client for Galeon AeroMeter. Windows source code and prebuilt packages are currently available. The same source is designed to remain compatible with macOS, but no macOS package is published in this release.
 
 The public repository includes the PySide6 UI, USB/BLE transports, the client-side measurement protocol subset, charts, statistics, accumulated volume, CSV export, tests, and Windows build tooling. Device firmware, calibration and production algorithms, OTA/signing, serial-number tooling, and mobile apps are excluded.
+
+Third-party client developers can use the documented BLE or USB measurement interface. See the [AeroMeter Protocol 1 client integration guide](protocol/AEROMETER_PROTOCOL_1.md) for UUIDs, packet layouts, USB framing, stream controls, examples, and compatibility rules.
 
 Download the Windows ZIP from **GitHub Releases**, extract the complete folder, and run AeroMeter.exe. Verify its SHA-256 value against SHA256SUMS.txt. The package uses an unpacked directory build without executable compression and is scanned with Windows Defender before upload.
 

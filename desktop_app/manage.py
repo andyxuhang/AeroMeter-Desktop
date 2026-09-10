@@ -21,7 +21,7 @@ def venv_python() -> Path:
 def require_protocol() -> None:
     if not (PROTOCOL_PACKAGE / "pyproject.toml").is_file():
         raise SystemExit(
-            "Protocol submodule is missing. Run: git submodule update --init --recursive"
+            "Vendored protocol package is missing; restore protocol/shared_protocol/python"
         )
 
 

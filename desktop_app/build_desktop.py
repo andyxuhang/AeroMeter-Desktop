@@ -88,7 +88,7 @@ def main() -> None:
     if sys.platform not in ("win32", "darwin"):
         raise SystemExit("Desktop packages are supported on Windows and macOS only")
     if not (PROTOCOL_PACKAGE / "pyproject.toml").is_file():
-        raise SystemExit("Protocol submodule is missing; initialize Git submodules first")
+        raise SystemExit("Vendored protocol package is missing; restore protocol/shared_protocol/python")
     environment = os.environ.copy()
     # Sandboxed/packaged hosts can assign a very long user-cache path. MinGW's
     # nested Windows SDK headers may then exceed the legacy path limit.
