@@ -6,7 +6,9 @@ AeroMeter 的公开桌面客户端。当前提供 Windows 版源码与预编译�
 
 普通用户请从 GitHub 的 **Releases** 页面下载最新的 `AeroMeter-Windows-x64-*.zip`。解压完整目录后运行 `AeroMeter.exe`，不要只复制单个 EXE。
 
-下载后可用同一发布页中的 `SHA256SUMS.txt` 核对文件完整性。
+下载后可用同一发布页中的 SHA256SUMS.txt 核对文件完整性。发布包采用目录式构建，不使用自解压单文件封装或可执行文件压缩，并在上传前使用 Windows Defender 扫描。
+
+当前 EXE 尚未使用受信任的 Authenticode 证书签名，因此部分电脑仍可能显示“未知发布者”或 SmartScreen 提示。SHA-256 可以确认文件完整性，但不能替代数字签名。
 
 ## 公开范围
 
@@ -44,7 +46,9 @@ AeroMeter Desktop is the public desktop client for Galeon AeroMeter. Windows sou
 
 The public repository includes the PySide6 UI, USB/BLE transports, the client-side measurement protocol subset, charts, statistics, accumulated volume, CSV export, tests, and Windows build tooling. Device firmware, calibration and production algorithms, OTA/signing, serial-number tooling, and mobile apps are excluded.
 
-Download the Windows ZIP from **GitHub Releases**, extract the complete folder, and run `AeroMeter.exe`.
+Download the Windows ZIP from **GitHub Releases**, extract the complete folder, and run AeroMeter.exe. Verify its SHA-256 value against SHA256SUMS.txt. The package uses an unpacked directory build without executable compression and is scanned with Windows Defender before upload.
+
+The executable is currently unsigned, so Windows may still show an unknown-publisher or SmartScreen warning until a trusted Authenticode certificate is available.
 
 ## License
 

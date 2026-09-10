@@ -30,7 +30,10 @@ class ManagementTests(unittest.TestCase):
         self.assertIn("--include-package=winrt", command)
         self.assertIn("--include-module=PySide6.QtOpenGL", command)
         self.assertIn("--windows-console-mode=disable", command)
-        self.assertIn("--file-version=1.2.0.9", command)
+        self.assertIn("--file-version=1.2.0.10", command)
+        self.assertTrue(
+            any(item.startswith("--windows-icon-from-ico=") for item in command)
+        )
         self.assertTrue(any(item.endswith("AeroMeter.py") for item in command))
 
     def test_macos_build_uses_same_source_and_permissions(self):

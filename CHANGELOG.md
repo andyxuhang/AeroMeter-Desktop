@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0-beta.9 — 2026-09-10
+
+- Added the official AeroMeter multi-resolution Windows application icon.
+- Retained directory-based Nuitka packaging without a self-extracting one-file wrapper or executable compression.
+- Added SHA-256 release verification and Windows Defender scan reporting to the release process.
+
+The Windows executable is currently unsigned because no trusted code-signing certificate is installed. A valid Authenticode certificate is still required to establish publisher identity and reduce Microsoft SmartScreen warnings.
+
 ## 1.2.0-beta.8 — 2026-09-10
 
 - Published the standalone AeroMeter Desktop source with a clean public history.

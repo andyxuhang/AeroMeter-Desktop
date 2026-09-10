@@ -35,5 +35,5 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(decoder.feed(b'x' * 5000 + b'\n@AM1 {"id":1}\n'), [{"id": 1}])
 
     def test_separate_versions(self):
-        self.assertEqual(APP_VERSION, "1.2.0-beta.8")
+        self.assertEqual(APP_VERSION, "1.2.0-beta.9")
         self.assertEqual(FRAMEWORK_VERSION, "1.1.0")

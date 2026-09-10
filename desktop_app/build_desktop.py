@@ -11,6 +11,7 @@ import sys
 
 APP_DIR = Path(__file__).resolve().parent
 PROTOCOL_PACKAGE = APP_DIR.parent / "protocol" / "shared_protocol" / "python"
+WINDOWS_ICON = APP_DIR / "assets" / "app_icon.ico"
 VERSIONS = json.loads((APP_DIR / "version.json").read_text(encoding="utf-8"))
 
 
@@ -49,6 +50,7 @@ def build_command(platform: str, sign_identity: str | None = None) -> list[str]:
         command.extend(
             [
                 "--windows-console-mode=disable",
+                f"--windows-icon-from-ico={WINDOWS_ICON}",
                 "--company-name=Galeon",
                 "--product-name=Galeon AeroMeter",
                 "--file-description=Galeon AeroMeter Desktop",
