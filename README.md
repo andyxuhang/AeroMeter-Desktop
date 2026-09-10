@@ -2,6 +2,10 @@
 
 AeroMeter 的公开桌面客户端。当前提供 Windows 版源码与预编译程序；macOS 使用同一套跨平台源码，但本次暂不发布安装包。
 
+> **硬件要求：** 本程序需要配合 AeroMeter 硬件才能使用。产品信息请访问 [Galeon 官网](https://www.galeonwhistles.com/)（网站可能暂未提供更详细的产品信息）。
+>
+> **Hardware required:** This application requires AeroMeter hardware. See the [Galeon website](https://www.galeonwhistles.com/) for product information; a more detailed product page may not yet be available.
+
 ## 下载 Windows 版
 
 普通用户请从 GitHub 的 **Releases** 页面下载最新的 `AeroMeter-Windows-x64-*.zip`。解压完整目录后运行 `AeroMeter.exe`，不要只复制单个 EXE。
