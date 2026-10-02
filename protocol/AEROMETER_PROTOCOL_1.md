@@ -47,7 +47,7 @@ BLE 和 USB 传输使用相同的 14 字节实时数据包与 20 字节统计数
 设备信息是 UTF-8 文本：
 
 ```text
-AeroMeter|id=AM1-55|fw=1.2.0-beta.9|proto=1|sn=AM1-55|hw=R1
+AeroMeter|id=28848555356D|fw=1.2.1|proto=1|sn=AM1-2610-000001|hw=R1
 ```
 
 第一个字段是产品名，后续字段为 `key=value`，使用 `|` 分隔。已定义键包括：
@@ -93,7 +93,7 @@ AeroMeter|id=AM1-55|fw=1.2.0-beta.9|proto=1|sn=AM1-55|hw=R1
 01013412785634127b00d2040205
 ```
 
-它表示序列号 `4660`、时间戳 `305419896 ms`、压力 `1.23 kPa`、流量 `12.34 L/min`、状态为稳定、会话有效且流量超量程。
+它表示序列号 `4660`、时间戳 `305419896 ms`、压力 `1.23 kPa`、流量 `12.34 L/min`、状态为稳定、会话正在进行且流量超量程。超量程标志优先于数值和稳定状态：示例中的12.34不是有效流量。
 
 ### 3.4 统计数据包
 
@@ -163,7 +163,7 @@ VID/PID 只能筛选候选串口。连接后还必须发送 `info` 请求，并�
 成功响应：
 
 ```json
-{"id":1,"ok":true,"info":{"product":"AeroMeter","uid":"...","fw":"1.2.0-beta.9","sn":"AM1-55","hw":"R1"}}
+{"id":1,"ok":true,"info":{"product":"AeroMeter","uid":"28848555356D","fw":"1.2.1","sn":"AM1-2610-000001","hw":"R1"}}
 ```
 
 失败响应：
@@ -199,6 +199,8 @@ VID/PID 只能筛选候选串口。连接后还必须发送 `info` 请求，并�
 ```
 
 本文只承诺以上 USB 请求。不要依赖未公开的操作。
+
+示例中的 `\n` 代表实际 LF 字节，不是两个文字字符。建议每1.5秒发送一次 ping，及时处理响应失败和无数据超时。info 中的 fw 是设备固件版本，不是桌面程序版本；序列号和 UID 示例不能用作固定匹配值。
 
 ### 4.4 测量事件
 
@@ -251,6 +253,20 @@ def decode_live(payload: bytes) -> dict:
 
 ## 7. English summary
 
+完整英文版见 [English integration guide](AEROMETER_PROTOCOL_1_EN.md)。
+
 Protocol 1 exposes the client-facing AeroMeter measurement interface over BLE and USB. Both transports carry the same 14-byte live packet and 20-byte statistics packet. All multibyte fields are little-endian; pressure is in kPa × 100 and flow is in L/min × 100. Treat overload flag bits as authoritative, validate version/type/exact length, and ignore unknown metadata keys or reserved flag bits.
 
 The public scope is read-only measurement integration plus stream control. Firmware update, provisioning, calibration, signing, serial-number programming, production, and maintenance operations are intentionally excluded.
+
+## 8. 数据有效性与集成注意事项
+
+Protocol 1 **没有传感器缺失或气压归零未完成的标志**。0x01仅表示会话进行中。缺失传感器时可能发送零或旧的滤波读数；零值、收到数据或稳定状态都不能证明测量有效。正常启动、无红色警告是使用前提；启动警告长按跳过只允许维护。后来接入传感器必须重启并完成检查与气压归零。客户端不得宣称能自动检测所有传感器故障。
+
+实时数据是滤波读数，不是100 Hz原始采样。统计包来自设备1秒窗口；两位小数的Σ可能量化为零，不能因此推断绝对无噪声。气流不做开机归零；负值截为零。有效量程压力0–10 kPa、流量0–50 L/min；超量程按flags排除，不使用满量程红线/残留数字计算统计或气量。
+
+sequence 为16位无符号计数，按模65536处理回绕；timestamp_ms 为32位启动计时，约49.7天回绕，设备重启/重连后重新建立基准。不要跨传输或跨数据包类型比较序列号。记录丢包、重复、间隔与断线，避免UI看似冻结或把无数据误作零。
+
+客户端累计气量不同于设备100 Hz积分；须明确自己的采样率、计时方式和缺包策略。显示OVER或出现通信缺口时将累计结果标为不完整。标称传感器精度不等于派生统计/累计值的保证精度。
+
+同一设备不应由多个客户端竞争连接；进行升级前先关闭测量连接。只使用公开测量/流控接口，不探测维护命令。先用参考测试向量验证解析，再在实际设备上测试启动、连接、超量程、断线、重连和统计清除；软件测试通过不能替代实机验收。

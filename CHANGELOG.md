@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.1 — 2026-10-03
+
+- Promoted desktop beta.9 to stable 1.2.1, build 11; Framework 1.1.0 and Protocol 1 remain unchanged.
+- Added complete Chinese and English device/desktop user manuals and an English public integration guide.
+- Documented moisture/condensation precautions, pressure-only startup zeroing, sensor-warning limitations, overloads, and desktop-versus-device volume differences.
+- Corrected BLE naming, Auto connection behavior, negative-pressure handling, and unsupported CSV-export claims in documentation.
+- No measurement, connection, firmware, or wire-protocol behavior changes in this desktop release.
+
+Windows only. Executable remains unsigned. Automated checks do not replace acceptance testing with the shipping hardware.
+
 ## 1.2.0-beta.9 — 2026-09-10
 
 - Added the official AeroMeter multi-resolution Windows application icon.
@@ -14,7 +24,7 @@ The Windows executable is currently unsigned because no trusted code-signing cer
 - Added USB and BLE Auto discovery with remembered-device direct connection, one automatic retry, and scan fallback.
 - Unified USB and BLE measurement decoding through Protocol 1.
 - Kept device BLE Stream and Live Rate controls out of the desktop interface.
-- Added overload graph continuity, statistics thresholds, accumulated-volume status, CSV export, and reset confirmation.
+- Added overload graph continuity, statistics thresholds, accumulated-volume status, and reset confirmation. (Corrected in 1.2.1: CSV export was not implemented.)
 - Added Windows packaging and packaged self-test support.
 
 This prerelease provides a Windows package. A macOS package is not included.

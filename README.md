@@ -1,4 +1,4 @@
-# AeroMeter Desktop
+# AeroMeter Desktop 1.2.1
 
 AeroMeter 的公开桌面客户端。当前提供 Windows 版源码与预编译程序；macOS 使用同一套跨平台源码，但本次暂不发布安装包。
 
@@ -21,12 +21,14 @@ AeroMeter 的公开桌面客户端。当前提供 Windows 版源码与预编译�
 - PySide6 桌面界面
 - USB 与 Bluetooth Low Energy 连接
 - AeroMeter 测量协议的客户端必要子集
-- 实时压力/流量、图表、统计、累计气量与 CSV 导出
+- 实时压力/流量、图表、统计与累计气量（当前没有 CSV 导出功能）
 - 测试及 Windows 构建工具
 
 本仓库不包含设备固件、校准与生产算法、OTA/签名、设备序列号和量产工具，也不包含移动端应用。详见 [OPEN_SOURCE_SCOPE.md](OPEN_SOURCE_SCOPE.md)。
 
 ## 二次开发
+
+正式版使用前请阅读[中文使用说明书](docs/AeroMeter_使用说明书_V1.md)或[English user manual](docs/AeroMeter_User_Manual_V1_EN.md)，尤其是湿气/冷凝水、开机归零、传感器警告和累计气量限制。软件版本升级不等同于整机校准或实机验收。
 
 第三方程序可通过公开的 BLE 或 USB 测量接口读取 AeroMeter 数据。服务 UUID、二进制数据包、USB 行协议、控制指令、示例和兼容性规则见 [AeroMeter Protocol 1 客户端接入指南](protocol/AEROMETER_PROTOCOL_1.md)。固件升级、校准、签名、生产和维护接口不属于公开协议。
 
@@ -52,9 +54,9 @@ python desktop_app/manage.py build
 
 AeroMeter Desktop is the public desktop client for Galeon AeroMeter. Windows source code and prebuilt packages are currently available. The same source is designed to remain compatible with macOS, but no macOS package is published in this release.
 
-The public repository includes the PySide6 UI, USB/BLE transports, the client-side measurement protocol subset, charts, statistics, accumulated volume, CSV export, tests, and Windows build tooling. Device firmware, calibration and production algorithms, OTA/signing, serial-number tooling, and mobile apps are excluded.
+The public repository includes the PySide6 UI, USB/BLE transports, the client-side measurement protocol subset, charts, statistics, accumulated volume, tests, and Windows build tooling. CSV export is not implemented in this version. Device firmware, calibration and production algorithms, OTA/signing, serial-number tooling, and mobile apps are excluded.
 
-Third-party client developers can use the documented BLE or USB measurement interface. See the [AeroMeter Protocol 1 client integration guide](protocol/AEROMETER_PROTOCOL_1.md) for UUIDs, packet layouts, USB framing, stream controls, examples, and compatibility rules.
+Read the [English user manual](docs/AeroMeter_User_Manual_V1_EN.md) before use. Third-party client developers can use the documented BLE or USB measurement interface. See the [English Protocol 1 integration guide](protocol/AEROMETER_PROTOCOL_1_EN.md) for UUIDs, packet layouts, USB framing, stream controls, examples, limitations, and compatibility rules.
 
 Download the Windows ZIP from **GitHub Releases**, extract the complete folder, and run AeroMeter.exe. Verify its SHA-256 value against SHA256SUMS.txt. The package uses an unpacked directory build without executable compression and is scanned with Windows Defender before upload.
 

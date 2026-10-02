@@ -8,7 +8,7 @@ This repository is a clean, standalone public distribution of the AeroMeter desk
 - USB serial and Bluetooth Low Energy discovery and transport
 - Client-side Protocol 1 measurement decoding and RPC framing required by the desktop client
 - Live pressure and flow display
-- Charts, summary statistics, accumulated-volume calculation, overload presentation, and CSV export
+- Charts, summary statistics, accumulated-volume calculation, and overload presentation (CSV export is not implemented)
 - Desktop tests, sample test vectors, and Windows build tooling
 
 ## Excluded
