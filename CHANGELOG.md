@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.3.0-beta.1 — 2026-10-03
+
+- Added user-facing signed `.amfw` package validation and USB OTA firmware installation.
+- Validates package structure, manifest, SHA-256, ESP32-S3 image metadata, device hardware profile/layout and monotonic release counter before transfer.
+- Keeps signing private keys and firmware signing/build workflows out of the public Desktop repository.
+- Device-side ECDSA verification remains authoritative before the inactive OTA slot is written.
+- Verifies the new firmware after reboot and checks that device identity plus factory/calibration metadata remain unchanged.
+
+This prerelease requires real-hardware acceptance testing before promotion to stable.
+
 ## 1.2.1 — 2026-10-03
 
 - Promoted desktop beta.9 to stable 1.2.1, build 11; Framework 1.1.0 and Protocol 1 remain unchanged.
