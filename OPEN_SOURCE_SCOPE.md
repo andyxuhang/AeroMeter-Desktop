@@ -9,19 +9,20 @@ This repository is a clean, standalone public distribution of the AeroMeter desk
 - Client-side Protocol 1 measurement decoding and RPC framing required by the desktop client
 - Live pressure and flow display
 - Charts, summary statistics, accumulated-volume calculation, and overload presentation (CSV export is not implemented)
+- User-facing signed `.amfw` package integrity/compatibility checks and USB OTA installation
 - Desktop tests, sample test vectors, and Windows build tooling
 
 ## Excluded
 
 - Device firmware and board-support code
 - Sensor calibration, factory calibration, and production algorithms
-- OTA implementation, signing keys, signing workflows, and secure-boot material
+- Firmware signing keys, firmware signing/build workflows, factory flashing, and secure-boot material
 - Serial-number management, provisioning, manufacturing, and factory flashing tools
 - Private release-management utilities
 - Android, iOS, and other mobile application source
 - Private specifications and internal development records
 
-The protocol code in this repository is intentionally limited to the subset required by the public desktop client. It is vendored directly so the public project can be cloned without access to a private repository or submodule.
+The protocol code in this repository is intentionally limited to the subset required by the public desktop client. The firmware updater exposes only the maintenance calls required to install an already signed package; the device remains the trust boundary and verifies the ECDSA signature with its embedded public key before accepting an OTA image. It is vendored directly so the public project can be cloned without access to a private repository or submodule.
 
 ## Contribution boundary
 
