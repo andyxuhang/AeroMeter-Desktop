@@ -13,6 +13,7 @@ from PySide6.QtGui import QColor, QFont
 from PySide6.QtWidgets import (
     QApplication,
     QComboBox,
+    QFileDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QProgressDialog,
     QSizePolicy,
     QTabWidget,
     QVBoxLayout,
@@ -30,6 +32,7 @@ from connection_client import AeroMeterConnectionClient, DiscoveredDevice
 from protocol import LiveData, StatisticsData, decode_live_packet
 from app_version import APP_VERSION, FRAMEWORK_VERSION
 from measurement_policy import VolumeIntegrator, coefficient
+from firmware_update import FirmwareUpdateRunner, inspect_package
 
 
 WINDOW_SECONDS = 10.0
@@ -189,6 +192,10 @@ class AeroMeterWindow(QMainWindow):
         self.stable_pressure: float | None = None
         self.stable_flow: float | None = None
         self.capture_stable_on_next_statistics = False
+        self.firmware_update_busy = False
+        self.pending_firmware_update: tuple[str, str] | None = None
+        self.firmware_update_runner: FirmwareUpdateRunner | None = None
+        self.firmware_progress_dialog: QProgressDialog | None = None
 
         self._build_ui()
         self._connect_signals()
@@ -240,6 +247,11 @@ class AeroMeterWindow(QMainWindow):
         self.connect_button.setObjectName("primaryButton")
         self.connect_button.setMinimumWidth(120)
         self.connect_button.setEnabled(False)
+        self.firmware_button = QPushButton("Firmware Update…")
+        self.firmware_button.setToolTip(
+            "Validate and install a signed .amfw package over USB."
+        )
+        self.firmware_button.setEnabled(False)
 
         header.addWidget(product)
         header.addSpacing(18)
@@ -250,6 +262,7 @@ class AeroMeterWindow(QMainWindow):
         header.addWidget(self.device_combo)
         header.addWidget(self.scan_button)
         header.addWidget(self.connect_button)
+        header.addWidget(self.firmware_button)
         return header
 
     def _build_live_page(self) -> QWidget:
@@ -445,6 +458,7 @@ class AeroMeterWindow(QMainWindow):
     def _connect_signals(self) -> None:
         self.connect_button.clicked.connect(self._toggle_connection)
         self.scan_button.clicked.connect(self._scan_devices)
+        self.firmware_button.clicked.connect(self._choose_firmware_update)
         self.reset_statistics_button.clicked.connect(
             self._confirm_reset_statistics
         )
@@ -503,6 +517,8 @@ class AeroMeterWindow(QMainWindow):
             QTimer.singleShot(0, self._connect_startup_fallback)
 
     def _scan_devices(self) -> None:
+        if self.firmware_update_busy:
+            return
         if not self.connected and not self.ble.running:
             self.auto_connect_after_scan = self.startup_scan_pending
             self.startup_scan_pending = False
@@ -510,10 +526,11 @@ class AeroMeterWindow(QMainWindow):
             self.ble.scan(self.transport_combo.currentText(), preferred)
 
     def _scan_changed(self, scanning: bool) -> None:
-        self.transport_combo.setEnabled(not scanning and not self.connected)
-        self.scan_button.setEnabled(not scanning and not self.connected)
-        self.device_combo.setEnabled(not scanning and not self.connected)
-        if scanning:
+        controls_enabled = not scanning and not self.connected and not self.firmware_update_busy
+        self.transport_combo.setEnabled(controls_enabled)
+        self.scan_button.setEnabled(controls_enabled)
+        self.device_combo.setEnabled(controls_enabled)
+        if scanning or self.firmware_update_busy:
             self.connect_button.setEnabled(False)
         elif self.auto_connect_device is not None and not self.connected:
             device = self.auto_connect_device
@@ -539,8 +556,10 @@ class AeroMeterWindow(QMainWindow):
         elif devices:
             self.device_combo.setCurrentIndex(0)
         self.connect_button.setEnabled(
-            self.connected or (bool(devices) and not self.ble.running)
+            not self.firmware_update_busy
+            and (self.connected or (bool(devices) and not self.ble.running))
         )
+        self._update_firmware_button_state()
         self.auto_connect_device = None
         self.fallback_connect_device = None
         if self.auto_connect_after_scan and devices:
@@ -557,11 +576,28 @@ class AeroMeterWindow(QMainWindow):
 
     def _device_selection_changed(self, _index: int) -> None:
         self.connect_button.setEnabled(
-            self.connected
-            or isinstance(self.device_combo.currentData(), DiscoveredDevice)
+            not self.firmware_update_busy
+            and (
+                self.connected
+                or isinstance(self.device_combo.currentData(), DiscoveredDevice)
+            )
+        )
+        self._update_firmware_button_state()
+
+    def _selected_usb_device(self) -> DiscoveredDevice | None:
+        selected = self.device_combo.currentData()
+        if isinstance(selected, DiscoveredDevice) and selected.address.startswith("usb:"):
+            return selected
+        return None
+
+    def _update_firmware_button_state(self) -> None:
+        self.firmware_button.setEnabled(
+            not self.firmware_update_busy and self._selected_usb_device() is not None
         )
 
     def _toggle_connection(self) -> None:
+        if self.firmware_update_busy:
+            return
         if self.connected or self.ble.running:
             self.connect_button.setEnabled(False)
             self._show_status("DISCONNECTING", "Closing connection...")
@@ -577,6 +613,8 @@ class AeroMeterWindow(QMainWindow):
     def _connect_device(
         self, device: DiscoveredDevice, locate_timeout: float = 10.0
     ) -> None:
+        if self.firmware_update_busy:
+            return
         self.connected_device_address = device.address
         self.connected_device_name = device.name
         for index in range(self.device_combo.count()):
@@ -588,6 +626,147 @@ class AeroMeterWindow(QMainWindow):
         self.connect_button.setEnabled(False)
         self._show_status("CONNECTING", f"Connecting to {device.name}...")
         self.ble.connect(device.address, device.name, locate_timeout)
+
+    def _choose_firmware_update(self) -> None:
+        device = self._selected_usb_device()
+        if device is None:
+            QMessageBox.information(
+                self,
+                "Firmware Update",
+                "Select an AeroMeter USB connection before updating firmware.",
+            )
+            return
+
+        package_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select AeroMeter Firmware",
+            "",
+            "AeroMeter Firmware (*.amfw)",
+        )
+        if not package_path:
+            return
+        try:
+            package = inspect_package(package_path)
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Firmware Package Rejected",
+                f"The selected firmware package failed local validation.\n\n{error}",
+            )
+            return
+
+        manifest = package.manifest
+        response = QMessageBox.question(
+            self,
+            "Confirm Firmware Update",
+            "Package validation passed.\n\n"
+            f"Version: {manifest['version']}\n"
+            f"Build: {manifest['build']}\n"
+            f"Release counter: {manifest['counter']}\n"
+            f"Hardware: {manifest['hardware_profile']} / {manifest['layout']}\n\n"
+            "Before continuing:\n"
+            "1. Stop all measurements.\n"
+            "2. Open the AeroMeter device-information page and hold it for about "
+            "two seconds to authorize maintenance.\n"
+            "3. Keep the USB cable connected until the update is complete.\n\n"
+            "The device will independently verify the firmware signature before "
+            "writing the inactive OTA slot. Continue?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if response != QMessageBox.StandardButton.Yes:
+            return
+
+        self.firmware_update_busy = True
+        self.pending_firmware_update = (device.address[4:], package_path)
+        self.transport_combo.setEnabled(False)
+        self.scan_button.setEnabled(False)
+        self.device_combo.setEnabled(False)
+        self.connect_button.setEnabled(False)
+        self.firmware_button.setEnabled(False)
+        self._show_status("UPDATING", "Preparing exclusive USB access…")
+        if self.connected or self.ble.running:
+            self.ble.disconnect()
+        QTimer.singleShot(100, self._begin_firmware_update_when_ready)
+
+    def _begin_firmware_update_when_ready(self) -> None:
+        if not self.firmware_update_busy or self.pending_firmware_update is None:
+            return
+        if self.ble.running:
+            QTimer.singleShot(100, self._begin_firmware_update_when_ready)
+            return
+
+        port, package_path = self.pending_firmware_update
+        self.pending_firmware_update = None
+        dialog = QProgressDialog(
+            "Checking device and signed firmware package…", "", 0, 100, self
+        )
+        dialog.setWindowTitle("AeroMeter Firmware Update")
+        dialog.setCancelButton(None)
+        dialog.setWindowModality(Qt.WindowModality.ApplicationModal)
+        dialog.setAutoClose(False)
+        dialog.setAutoReset(False)
+        dialog.setMinimumDuration(0)
+        dialog.setValue(0)
+        self.firmware_progress_dialog = dialog
+
+        runner = FirmwareUpdateRunner(port, package_path)
+        self.firmware_update_runner = runner
+        runner.progress_changed.connect(dialog.setValue)
+        runner.status_changed.connect(self._firmware_update_status)
+        runner.succeeded.connect(self._firmware_update_succeeded)
+        runner.failed.connect(self._firmware_update_failed)
+        dialog.show()
+        runner.start()
+
+    def _firmware_update_status(self, message: str) -> None:
+        self._show_status("UPDATING", message)
+        if self.firmware_progress_dialog is not None:
+            self.firmware_progress_dialog.setLabelText(message)
+
+    def _finish_firmware_update_ui(self) -> None:
+        if self.firmware_progress_dialog is not None:
+            self.firmware_progress_dialog.close()
+            self.firmware_progress_dialog.deleteLater()
+            self.firmware_progress_dialog = None
+        self.firmware_update_runner = None
+        self.firmware_update_busy = False
+        self.transport_combo.setEnabled(not self.connected)
+        self.scan_button.setEnabled(not self.connected)
+        self.device_combo.setEnabled(not self.connected)
+        self.connect_button.setEnabled(
+            self.connected
+            or isinstance(self.device_combo.currentData(), DiscoveredDevice)
+        )
+        self._update_firmware_button_state()
+
+    def _firmware_update_succeeded(self, result: object) -> None:
+        self._finish_firmware_update_ui()
+        after = result.get("after", {}) if isinstance(result, dict) else {}
+        self._show_status(
+            "READY",
+            f"Firmware {after.get('fw', '')} installed and verified.",
+        )
+        QMessageBox.information(
+            self,
+            "Firmware Update Complete",
+            "Firmware update completed successfully.\n\n"
+            f"Version: {after.get('fw', 'unknown')}\n"
+            f"Build: {after.get('build', 'unknown')}\n"
+            "Device identity and calibration metadata were preserved.",
+        )
+        QTimer.singleShot(500, self._scan_devices)
+
+    def _firmware_update_failed(self, message: str) -> None:
+        self._finish_firmware_update_ui()
+        self._show_status("ERROR", "Firmware update failed or was not confirmed")
+        QMessageBox.critical(
+            self,
+            "Firmware Update Failed",
+            message
+            + "\n\nThe device keeps its previous bootable OTA slot unless the "
+            "new image passes device-side verification and boot validation.",
+        )
 
     def _reset_measurement_view(self) -> None:
         self.latest_live = None
@@ -642,7 +821,7 @@ class AeroMeterWindow(QMainWindow):
         self._update_all_labels()
 
     def _connection_changed(self, connected: bool) -> None:
-        self.transport_combo.setEnabled(not connected)
+        self.transport_combo.setEnabled(not connected and not self.firmware_update_busy)
         self.connected = connected
         if connected:
             self.startup_phase = "complete"
@@ -665,17 +844,21 @@ class AeroMeterWindow(QMainWindow):
                     self.device_combo.setCurrentIndex(index)
                     break
         self.connect_button.setText("Disconnect" if connected else "Connect")
-        self.scan_button.setEnabled(not connected)
-        self.device_combo.setEnabled(not connected)
+        self.scan_button.setEnabled(not connected and not self.firmware_update_busy)
+        self.device_combo.setEnabled(not connected and not self.firmware_update_busy)
         self.connect_button.setEnabled(
-            connected
-            or (
+            not self.firmware_update_busy
+            and (
+                connected
+                or (
                 isinstance(self.device_combo.currentData(), DiscoveredDevice)
                 and not self.ble.running
-                and self.startup_phase
-                not in ("direct_1", "direct_2", "fallback_wait", "fallback_connect")
+                    and self.startup_phase
+                    not in ("direct_1", "direct_2", "fallback_wait", "fallback_connect")
+                )
             )
         )
+        self._update_firmware_button_state()
         if not connected:
             self.local_session_active = False
             self.status_dot.setStyleSheet("color: #7f8b96;")
@@ -689,6 +872,7 @@ class AeroMeterWindow(QMainWindow):
             "PACKET ERROR": "#ffb454",
             "SCANNING": "#56c7ff",
             "CONNECTING": "#56c7ff",
+            "UPDATING": "#ffb454",
             "READY": "#69e6a6",
         }
         self.status_dot.setStyleSheet(f"color: {colors.get(status, '#7f8b96')};")
