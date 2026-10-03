@@ -1,4 +1,4 @@
-# AeroMeter Desktop 1.2.1
+# AeroMeter Desktop 1.3.0-beta.1
 
 [English](#english) | [中文](#中文)
 
@@ -20,7 +20,7 @@ The executable is not signed with a trusted Authenticode certificate. Windows ma
 
 ### Before Use
 
-Read the [English user manual](docs/AeroMeter_User_Manual_V1_EN.md), especially the moisture/condensation precautions, startup pressure zeroing, sensor warnings and volume limitations. The desktop version and device firmware are managed separately; a software update is not an instrument calibration or hardware acceptance test.
+Read the [English user manual](docs/AeroMeter_User_Manual_V1_EN.md), especially the moisture/condensation precautions, startup pressure zeroing, sensor warnings and volume limitations. The desktop version and device firmware are managed separately; a software update is not an instrument calibration or hardware acceptance test. Desktop 1.3 adds USB installation for signed AeroMeter firmware packages; see [Firmware Update](docs/FIRMWARE_UPDATE.md).
 
 Protocol 1 has no sensor-missing or pressure-zero-incomplete validity flag. Numbers displayed on the PC do not prove valid measurement. Confirm normal device startup with no red sensor warnings before measuring. See the [release and acceptance notes](docs/RELEASE_1.2.1.md) and [verification report](docs/VERIFICATION_1.2.1.md) for delivery checks and what was actually tested.
 
@@ -32,9 +32,10 @@ This repository includes:
 - USB and Bluetooth Low Energy connections
 - The client-facing subset of the AeroMeter measurement protocol
 - Live pressure/flow, charts, statistics and accumulated volume; CSV export is not implemented
+- Signed `.amfw` package integrity/compatibility checks and USB firmware update
 - Tests and Windows build tooling
 
-Device firmware, calibration and production algorithms, OTA/signing, serial-number and mass-production tools, and mobile apps are excluded. See [OPEN_SOURCE_SCOPE.md](OPEN_SOURCE_SCOPE.md).
+Device firmware source, calibration and production algorithms, firmware signing/private keys, serial-number and mass-production tools, and mobile apps are excluded. The public Desktop updater can install an already signed `.amfw` package over USB; the device performs the authoritative signature check. See [OPEN_SOURCE_SCOPE.md](OPEN_SOURCE_SCOPE.md).
 
 ### Third-Party Development
 
@@ -80,7 +81,7 @@ AeroMeter Desktop 是 Galeon AeroMeter 的公开桌面客户端。当前提供 W
 
 ### 使用前必读
 
-请阅读[中文使用说明书](docs/AeroMeter_使用说明书_V1.md)，尤其是湿气/冷凝水防护、开机气压归零、传感器警告和累计气量限制。桌面程序与设备固件分别管理；软件升级不等同于整机校准或实机验收。
+请阅读[中文使用说明书](docs/AeroMeter_使用说明书_V1.md)，尤其是湿气/冷凝水防护、开机气压归零、传感器警告和累计气量限制。桌面程序与设备固件分别管理；软件升级不等同于整机校准或实机验收。Desktop 1.3 增加已签名 AeroMeter 固件包的 USB 安装入口，操作见[固件升级说明](docs/FIRMWARE_UPDATE.md)。
 
 Protocol 1 没有传感器缺失或气压归零未完成的有效性标志。PC 出现数字不代表测量有效；测量前须确认设备正常启动、没有红色传感器警告。交付前检查事项及本次实际完成的测试见[发布与验收说明](docs/RELEASE_1.2.1.md)和[验证报告](docs/VERIFICATION_1.2.1.md)。
 
@@ -92,9 +93,10 @@ Protocol 1 没有传感器缺失或气压归零未完成的有效性标志。PC 
 - USB 与 Bluetooth Low Energy 连接
 - AeroMeter 测量协议的客户端必要子集
 - 实时压力/流量、图表、统计与累计气量；当前没有 CSV 导出功能
+- 已签名 `.amfw` 固件包完整性/兼容性检查与 USB 固件升级
 - 测试及 Windows 构建工具
 
-本仓库不包含设备固件、校准与生产算法、OTA/签名、设备序列号和量产工具，也不包含移动端应用。详见 [OPEN_SOURCE_SCOPE.md](OPEN_SOURCE_SCOPE.md)。
+本仓库不包含设备固件源码、校准与生产算法、固件签名私钥/签名流程、设备序列号和量产工具，也不包含移动端应用。公开 Desktop 可以通过 USB 安装已经签名的 `.amfw` 固件包；最终签名验证由设备端完成。详见 [OPEN_SOURCE_SCOPE.md](OPEN_SOURCE_SCOPE.md)。
 
 ### 二次开发
 
